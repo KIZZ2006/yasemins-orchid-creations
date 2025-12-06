@@ -17,6 +17,7 @@ export default function AdminUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [dragActive, setDragActive] = useState(false);
   const [preview, setPreview] = useState<string>('');
   const authChecked = useRef(false);
@@ -68,28 +69,50 @@ export default function AdminUploadPage() {
         // Don't redirect on network errors, just show error
         toast.error('Authentication check failed. Please try again.');
         setAuthenticated(true); // Allow user to continue and retry
+        await loadCategories(); // Still try to load categories
         return;
       }
 
       // Auth successful
       console.log('Auth verified successfully');
       setAuthenticated(true);
-      loadCategories();
+      await loadCategories();
     } catch (error) {
       console.error('Auth check error:', error);
       // On network error, don't log out - just show error and allow retry
       toast.error('Network error. Please check your connection.');
       setAuthenticated(true); // Allow user to continue
+      await loadCategories(); // Still try to load categories
     }
   };
 
   const loadCategories = async () => {
+    setCategoriesLoading(true);
     try {
       const response = await fetch('/api/categories');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load categories: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Categories loaded:', data);
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid categories response format');
+      }
+      
       setCategories(data);
+      
+      if (data.length === 0) {
+        toast.error('No categories found. Please create categories first in admin settings.');
+      }
     } catch (error) {
-      console.error('Failed to load categories');
+      console.error('Failed to load categories:', error);
+      toast.error('Failed to load categories. Please refresh the page.');
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
@@ -378,9 +401,16 @@ export default function AdminUploadPage() {
                   <Select
                     value={formData.category}
                     onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                    disabled={categoriesLoading || categories.length === 0}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder={
+                        categoriesLoading 
+                          ? "Loading categories..." 
+                          : categories.length === 0 
+                          ? "No categories available" 
+                          : "Select category"
+                      } />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
@@ -390,6 +420,11 @@ export default function AdminUploadPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {categories.length === 0 && !categoriesLoading && (
+                    <p className="text-xs text-destructive mt-1">
+                      Please create categories in admin settings first
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -454,7 +489,7 @@ export default function AdminUploadPage() {
             <Button
               type="submit"
               className="flex-1 orchid-gradient text-white"
-              disabled={loading || uploading || !formData.imageUrl}
+              disabled={loading || uploading || !formData.imageUrl || categories.length === 0}
             >
               <Upload className="mr-2 h-4 w-4" />
               {loading ? 'Creating...' : 'Create Product'}

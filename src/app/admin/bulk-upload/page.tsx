@@ -32,6 +32,7 @@ export default function BulkUploadPage() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [images, setImages] = useState<ImageData[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -70,7 +71,7 @@ export default function BulkUploadPage() {
       // Auth successful
       console.log('Auth verified successfully');
       setAuthenticated(true);
-      loadCategories();
+      await loadCategories();
     } catch (error) {
       console.error('Auth check error:', error);
       localStorage.removeItem('admin_token');
@@ -79,12 +80,32 @@ export default function BulkUploadPage() {
   };
 
   const loadCategories = async () => {
+    setCategoriesLoading(true);
     try {
       const response = await fetch('/api/categories');
+      
+      if (!response.ok) {
+        throw new Error(`Failed to load categories: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Categories loaded:', data);
+      
+      if (!Array.isArray(data)) {
+        throw new Error('Invalid categories response format');
+      }
+      
       setCategories(data);
+      
+      if (data.length === 0) {
+        toast.error('No categories found. Please create categories first in admin settings.');
+      }
     } catch (error) {
-      console.error('Failed to load categories');
+      console.error('Failed to load categories:', error);
+      toast.error('Failed to load categories. Please refresh the page.');
+      setCategories([]);
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
@@ -471,9 +492,16 @@ export default function BulkUploadPage() {
                           <Select
                             value={img.category}
                             onValueChange={(value) => updateImage(img.id, { category: value })}
+                            disabled={categoriesLoading || categories.length === 0}
                           >
                             <SelectTrigger>
-                              <SelectValue />
+                              <SelectValue placeholder={
+                                categoriesLoading 
+                                  ? "Loading categories..." 
+                                  : categories.length === 0 
+                                  ? "No categories available" 
+                                  : "Select category"
+                              } />
                             </SelectTrigger>
                             <SelectContent>
                               {categories.map((cat) => (
@@ -483,6 +511,11 @@ export default function BulkUploadPage() {
                               ))}
                             </SelectContent>
                           </Select>
+                          {categories.length === 0 && !categoriesLoading && (
+                            <p className="text-xs text-destructive mt-1">
+                              Create categories in admin settings
+                            </p>
+                          )}
                         </div>
 
                         <div className="md:col-span-2">
