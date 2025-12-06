@@ -383,6 +383,7 @@ export default function AdminUploadPage() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
+                     <SelectItem value="AI Image">AI Image</SelectItem>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.name}>
                           {cat.name}
