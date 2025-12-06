@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShoppingCart, Menu, X, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,17 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b-2 border-primary/30">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-2xl font-bold neon-text-cyan tracking-wider">
-            YASEMIN<span className="neon-text-magenta">.</span>CYBER
+          <Link href="/" className="flex items-center gap-3">
+            <Image 
+              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/WhatsApp-Image-2025-12-06-at-15.40.46_e1bbb37b-1765015943496.jpg?width=8000&height=8000&resize=contain"
+              alt="Yasemin's Creations Logo"
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
+            <span className="text-2xl font-bold neon-text-cyan tracking-wider">
+              YASEMIN<span className="neon-text-magenta">.</span>CYBER
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
