@@ -1,0 +1,51 @@
+/* Additional content protection styles */
+
+/* Disable text selection on images and sensitive content */
+img,
+.protected-content {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: auto;
+  -webkit-touch-callout: none;
+}
+
+/* Prevent dragging of images */
+img {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* Hide screenshot indicators */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  img {
+    display: none !important;
+  }
+}
+
+/* Additional protection layer */
+.image-protection-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 100px,
+    rgba(221, 160, 221, 0.02) 100px,
+    rgba(221, 160, 221, 0.02) 200px
+  );
+  user-select: none;
+  -webkit-user-select: none;
+}
